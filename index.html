@@ -7,21 +7,14 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
             background: linear-gradient(to right, #74ebd5, #acb6e5);
-        }
-        h2 {
-            text-align: center;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            padding: 20px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
             border-radius: 8px;
-            overflow: hidden;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
         }
         th, td {
@@ -33,12 +26,11 @@
             background: #333;
             color: white;
         }
-        button {
-            padding: 8px 12px;
+        .delete-btn, .info-btn {
+            padding: 6px 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
             transition: 0.3s;
         }
         .delete-btn {
@@ -48,42 +40,26 @@
         .delete-btn:hover {
             background: #cc0000;
         }
-        form {
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        input {
-            padding: 10px;
-            flex: 1;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .add-btn {
-            background: #28a745;
+        .info-btn {
+            background: #3498db;
             color: white;
         }
-        .add-btn:hover {
-            background: #218838;
+        .info-btn:hover {
+            background: #217dbb;
         }
     </style>
 </head>
 <body>
 
     <h2>Inventario de Computadoras</h2>
-
     <form id="computerForm">
         <input type="text" id="marca" placeholder="Marca" required>
-        <input type="text" id="modelo" placeholder="Modelo" required>
+        <input type="text" id="modelo" placeholder="Modelo" required oninput="autocompletar()">
         <input type="number" id="precio" placeholder="Precio" required>
         <input type="number" id="cantidad" placeholder="Cantidad" required>
-        <button type="submit" class="add-btn">Agregar</button>
+        <button type="submit">Agregar</button>
     </form>
-
+    
     <table id="inventoryTable">
         <thead>
             <tr>
@@ -91,64 +67,99 @@
                 <th>Modelo</th>
                 <th>Precio</th>
                 <th>Cantidad</th>
-                <th>Acción</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Aquí se agregarán las computadoras -->
         </tbody>
     </table>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            loadInventory();
-        });
-
+        const modelosPredefinidos = {
+            "HP 14-ck2097la": "Procesador Intel Celeron, Windows 10 Home 64, 4GB RAM, 1TB HDD",
+            "Dell Inspiron 15": "Procesador Intel Core i5, Windows 11, 8GB RAM, 512GB SSD",
+            "Lenovo ThinkPad X1": "Procesador Intel Core i7, Windows 10 Pro, 16GB RAM, 1TB SSD",
+            "Asus VivoBook 14": "Procesador AMD Ryzen 5, Windows 11, 8GB RAM, 512GB SSD",
+            "MacBook Air M1": "Procesador Apple M1, macOS, 8GB RAM, 256GB SSD",
+            "Acer Aspire 5": "Procesador Intel Core i3, Windows 10, 4GB RAM, 256GB SSD",
+            "Samsung Galaxy Book": "Procesador Intel Core i5, Windows 11, 8GB RAM, 512GB SSD",
+            "MSI Modern 14": "Procesador AMD Ryzen 7, Windows 11, 16GB RAM, 512GB SSD",
+            "Razer Blade 15": "Procesador Intel Core i9, Windows 11, 32GB RAM, 1TB SSD",
+            "Alienware M15": "Procesador Intel Core i7, Windows 11, 16GB RAM, 1TB SSD",
+            "HP Pavilion 15": "Procesador Intel Core i5, Windows 11, 8GB RAM, 512GB SSD",
+            "Dell XPS 13": "Procesador Intel Core i7, Windows 11, 16GB RAM, 1TB SSD",
+            "Lenovo Legion 5": "Procesador AMD Ryzen 7, Windows 11, 16GB RAM, 512GB SSD",
+            "Asus TUF Gaming F15": "Procesador Intel Core i5, Windows 11, 16GB RAM, 512GB SSD",
+            "MacBook Pro M2": "Procesador Apple M2, macOS, 16GB RAM, 512GB SSD",
+            "Acer Nitro 5": "Procesador AMD Ryzen 5, Windows 11, 16GB RAM, 512GB SSD",
+            "Microsoft Surface Laptop 4": "Procesador Intel Core i5, Windows 11, 8GB RAM, 256GB SSD",
+            "LG Gram 17": "Procesador Intel Core i7, Windows 11, 16GB RAM, 1TB SSD",
+            "Huawei MateBook D14": "Procesador AMD Ryzen 5, Windows 11, 8GB RAM, 512GB SSD",
+            "Lenovo IdeaPad 3": "Procesador Intel Core i3, Windows 10, 4GB RAM, 256GB SSD",
+            "HP Spectre x360": "Procesador Intel Core i7, Windows 11, 8GB RAM, 512GB SSD",
+            "Acer Predator Helios": "Procesador Intel Core i7, Windows 11, 16GB RAM, 1TB SSD",
+            "ASUS ZenBook 13": "Procesador Intel Core i5, Windows 10, 8GB RAM, 512GB SSD",
+            "Dell Latitude 7400": "Procesador Intel Core i7, Windows 10, 16GB RAM, 512GB SSD",
+            "Toshiba Tecra A50": "Procesador Intel Core i5, Windows 10, 8GB RAM, 256GB SSD",
+            "MSI GE75 Raider": "Procesador Intel Core i9, Windows 10, 32GB RAM, 1TB SSD",
+            "Gigabyte Aero 15": "Procesador Intel Core i7, Windows 10, 16GB RAM, 1TB SSD",
+            "HP Omen 15": "Procesador AMD Ryzen 5, Windows 10, 16GB RAM, 512GB SSD",
+            "Lenovo Yoga 730": "Procesador Intel Core i7, Windows 10, 16GB RAM, 512GB SSD",
+            "Asus ZenBook Flip": "Procesador Intel Core i5, Windows 11, 8GB RAM, 256GB SSD",
+            "Apple MacBook 12": "Procesador Intel Core m3, macOS, 8GB RAM, 512GB SSD",
+            "Razer Blade Stealth": "Procesador Intel Core i7, Windows 11, 16GB RAM, 256GB SSD",
+            "Microsoft Surface Pro 7": "Procesador Intel Core i5, Windows 10, 8GB RAM, 256GB SSD",
+            "Huawei MateBook X Pro": "Procesador Intel Core i7, Windows 10, 16GB RAM, 512GB SSD",
+            "Lenovo ThinkPad L15": "Procesador AMD Ryzen 3, Windows 10, 8GB RAM, 512GB SSD",
+            "HP Elite Dragonfly": "Procesador Intel Core i5, Windows 10, 8GB RAM, 256GB SSD",
+            "Asus ROG Strix": "Procesador Intel Core i9, Windows 11, 32GB RAM, 1TB SSD",
+            "Acer Swift 3": "Procesador Intel Core i7, Windows 10, 8GB RAM, 512GB SSD",
+            "Dell G5 15": "Procesador Intel Core i5, Windows 10, 8GB RAM, 512GB SSD",
+            "MSI GT76 Titan": "Procesador Intel Core i9, Windows 10, 64GB RAM, 2TB SSD",
+            "Samsung Notebook 9": "Procesador Intel Core i5, Windows 10, 8GB RAM, 512GB SSD",
+            "Acer Aspire E15": "Procesador Intel Core i3, Windows 10, 4GB RAM, 256GB SSD",
+            "Asus TUF Dash F15": "Procesador AMD Ryzen 7, Windows 11, 16GB RAM, 512GB SSD",
+            "HP ProBook 450": "Procesador Intel Core i5, Windows 10, 8GB RAM, 1TB HDD",
+            "Lenovo ThinkPad X1 Carbon": "Procesador Intel Core i7, Windows 10, 16GB RAM, 512GB SSD",
+            "MSI GL65 Leopard": "Procesador Intel Core i7, Windows 10, 16GB RAM, 512GB SSD",
+            "Alienware Aurora R11": "Procesador Intel Core i9, Windows 11, 32GB RAM, 1TB SSD"
+        };
+        
         document.getElementById("computerForm").addEventListener("submit", function(event) {
             event.preventDefault();
-
             let marca = document.getElementById("marca").value;
             let modelo = document.getElementById("modelo").value;
             let precio = document.getElementById("precio").value;
             let cantidad = document.getElementById("cantidad").value;
-
-            let newComputer = { marca, modelo, precio, cantidad };
-            let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-            inventory.push(newComputer);
-
-            localStorage.setItem("inventory", JSON.stringify(inventory));
-
-            addRow(newComputer, inventory.length - 1);
-            document.getElementById("computerForm").reset();
+            addRow(marca, modelo, precio, cantidad);
         });
 
-        function addRow(computer, index) {
+        function addRow(marca, modelo, precio, cantidad) {
             let table = document.getElementById("inventoryTable").getElementsByTagName("tbody")[0];
             let row = table.insertRow();
-
             row.innerHTML = `
-                <td>${computer.marca}</td>
-                <td>${computer.modelo}</td>
-                <td>$${computer.precio}</td>
-                <td>${computer.cantidad}</td>
-                <td><button class="delete-btn" onclick="removeRow(${index})">Eliminar</button></td>
+                <td>${marca}</td>
+                <td>${modelo}</td>
+                <td>$${precio}</td>
+                <td>${cantidad}</td>
+                <td>
+                    <button class="info-btn" onclick="showDetails('${modelo}')">🔍</button>
+                    <button class="delete-btn" onclick="this.parentElement.parentElement.remove()">❌</button>
+                </td>
             `;
         }
 
-        function loadInventory() {
-            let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-            inventory.forEach((computer, index) => addRow(computer, index));
+        function showDetails(modelo) {
+            let info = modelosPredefinidos[modelo] || "Descripción no disponible";
+            alert(`Modelo: ${modelo}\nDetalles: ${info}`);
         }
-
-        function removeRow(index) {
-            let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-            inventory.splice(index, 1);
-            localStorage.setItem("inventory", JSON.stringify(inventory));
-
-            document.getElementById("inventoryTable").getElementsByTagName("tbody")[0].innerHTML = "";
-            loadInventory();
+        
+        function autocompletar() {
+            let modeloInput = document.getElementById("modelo").value;
+            if (modelosPredefinidos[modeloInput]) {
+                alert(`Modelo: ${modeloInput}\nDetalles: ${modelosPredefinidos[modeloInput]}`);
+            }
         }
     </script>
-
 </body>
 </html>
